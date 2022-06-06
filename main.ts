@@ -1,6 +1,7 @@
 import * as R from "https://x.nest.land/rambda@7.1.4/mod.ts";
 import { fromMarkdown } from "https://esm.sh/mdast-util-from-markdown@1.2.0";
 import type { Content } from "https://cdn.esm.sh/v85/@types/mdast@3.0.10/index.d.ts";
+import { parse } from "https://deno.land/std@0.142.0/flags/mod.ts";
 
 const pathJoin = R.join("/");
 
@@ -57,6 +58,7 @@ const decode = (encoding: string) => {
 
   return (buf: ArrayBuffer) => decoder.decode(buf);
 };
+const encode = (message: string) => new TextEncoder().encode(message);
 
 const readFile = (path: string) => Deno.readFile(path);
 const readText = (x: string) =>
@@ -102,9 +104,9 @@ const andThen =
     x.then(fn);
 
 const POST =
-  (url: string) =>
+  (url: string | URL) =>
   <T>(x: T) =>
-    fetch(url, {
+    fetch(String(url), {
       headers: {
         "Content-Type": "application/json",
       },
@@ -112,7 +114,10 @@ const POST =
       body: JSON.stringify(x),
     }).then((res) => res.json());
 
+const Url = (base: string) => (url: string) => new URL(url, base);
+
 interface Receipt {
+  id: string;
   title: string;
   summary: string[];
   directions: string[];
@@ -120,7 +125,21 @@ interface Receipt {
   notes: string[];
 }
 
-pipe(R.head(Deno.args))
+// ==========================================
+
+const { path, url } = parse(Deno.args);
+
+const SearchAPI = Url(url);
+
+const sha256 = (message: string) =>
+  Promise.resolve(message)
+    .then(encode)
+    .then((buf) => crypto.subtle.digest("SHA-256", buf))
+    .then((buf) => Array.from(new Uint8Array(buf)))
+    .then(R.map((b) => ("00" + b.toString(16)).slice(-2)))
+    .then(R.join(""));
+
+pipe(path)
   .to(traverse)
   .to(filter(isMarkdown))
   .to(map(R.prop("name")))
@@ -142,8 +161,7 @@ pipe(R.head(Deno.args))
   .to(
     map(
       R.reduce((obj, { heading, list, paragraph }, index) => {
-        if (index === 0) {
-          obj = R.assoc("id", crypto.randomUUID(), obj);
+        if (index === 0 && heading) {
           obj = R.assoc("title", heading, obj);
         }
 
@@ -168,5 +186,22 @@ pipe(R.head(Deno.args))
     )
   )
   .to(collect)
-  .to(andThen(R.tap(console.log)));
-// .to(andThen(POST("http://localhost:7700/indexes/receipts/documents")));
+  .to(
+    andThen(
+      R.pipe(
+        R.map(async (receipt) => ({
+          ...receipt,
+          id: receipt.title && (await sha256(receipt.title)),
+        })),
+        Promise.all.bind(Promise)
+      )
+    )
+  )
+  .to(
+    andThen(
+      POST(
+        SearchAPI("indexes/receipts/documents")
+        //
+      )
+    )
+  );

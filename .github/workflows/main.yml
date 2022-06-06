@@ -2,6 +2,7 @@ name: Fly Deploy
 on: [push]
 env:
   FLY_API_TOKEN: ${{ secrets.FLY_API_TOKEN }}
+  SEARCH_ENGINE_URL: ${{ secrets.SEARCH_ENGINE_URL }}
 jobs:
   deploy:
     name: Deploy app
@@ -16,10 +17,24 @@ jobs:
     runs-on: ubuntu-latest
     strategy:
       matrix:
-        path: [./HowToCook/dishes/vegetable_dish, ./HowToCook/dishes/aquatic]
+        path:
+          - ./HowToCook/dishes/aquatic
+          - ./HowToCook/dishes/breakfast
+          - ./HowToCook/dishes/condiment
+          - ./HowToCook/dishes/dessert
+          - ./HowToCook/dishes/drink
+          - ./HowToCook/dishes/meat_dish
+          - ./HowToCook/dishes/semi-finished
+          - ./HowToCook/dishes/soup
+          - ./HowToCook/dishes/staple
+          - ./HowToCook/dishes/template
+          - ./HowToCook/dishes/vegetable_dish
     steps:
       - uses: actions/checkout@v3
       - uses: denoland/setup-deno@v1
         with:
           deno-version: v1.22.2
-      - run: deno run --allow-all ./main.ts ${{ matrix.path }}
+      - run: |
+          deno run --allow-all ./main.ts \
+            --url="${{ env.SEARCH_ENGINE_URL }}" \
+            --path="${{ matrix.path }}"

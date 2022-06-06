@@ -1,4 +1,4 @@
-# fly.toml file generated for asking-how-to-cook-dev on 2022-06-06T22:55:03+08:00
+# fly.toml file generated for asking-how-to-cook-dev on 2022-06-07T02:14:25+08:00
 
 app = "asking-how-to-cook-dev"
 

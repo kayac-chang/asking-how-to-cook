@@ -168,5 +168,5 @@ pipe(R.head(Deno.args))
     )
   )
   .to(collect)
-  .to(andThen(R.tap(console.log)))
-  .to(andThen(POST("http://localhost:7700/indexes/receipts/documents")));
+  .to(andThen(R.tap(console.log)));
+// .to(andThen(POST("http://localhost:7700/indexes/receipts/documents")));

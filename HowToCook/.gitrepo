@@ -1,0 +1,12 @@
+; DO NOT EDIT (unless you know what you are doing)
+;
+; This subdirectory is a git "subrepo", and this file is maintained by the
+; git-subrepo command. See https://github.com/git-commands/git-subrepo#readme
+;
+[subrepo]
+	remote = https://github.com/Anduin2017/HowToCook.git
+	branch = master
+	commit = 2adb7c6cefc9d1f9caa6c5923d6750570b7823f3
+	parent = a12e950940ee4e869ce55589a8a43e5f5583c3f8
+	method = merge
+	cmdver = 0.4.3

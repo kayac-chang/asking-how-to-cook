@@ -7,17 +7,18 @@ jobs:
     name: Deploy app
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@v3
       - uses: superfly/flyctl-actions/setup-flyctl@master
       - run: flyctl deploy --remote-only
   upload:
     needs: [deploy]
     name: Upload receipts
     runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        path: [./HowToCook/dishes/vegetable_dish, ./HowToCook/dishes/aquatic]
     steps:
-      - uses: actions/checkout@v2
       - uses: denoland/setup-deno@v1
         with:
           deno-version: v1.22.2
-      - run: tree
-      - run: deno run --allow-all ./main.ts ./HowToCook/dishes/vegetable_dish
+      - run: deno run --allow-all ./main.ts ${{ matrix.path }}
